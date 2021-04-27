@@ -42,6 +42,8 @@ int main()
 	int key;
 	listNode* headnode=NULL;
 
+	printf("\n\n ----- [손영재] [2018038080] -----\n\n");
+
 	do{
 		printf("----------------------------------------------------------------\n");
 		printf("                  Doubly Circular Linked List                   \n");
