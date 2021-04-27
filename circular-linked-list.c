@@ -344,22 +344,22 @@ int insertNode(listNode* h, int key) {
 
 		return 0;
 	}
-	else if (temp != NULL) // temp가 NULL이 아닐 때, 즉 노드가 1개 이상 존재하는 경우
+	else if (temp != h) // temp가 NULL이 아닐 때, 즉 노드가 1개 이상 존재하는 경우
 	{
 		for (temp = h->rlink; ; ) // temp가 리스트의 모든 노드를 한 번씩 가리킬 때까지 반복
 		{
 			if (key < (temp->key)) // 사용자가 추가하고자 하는 노드 key값 보다 큰 key를 가진 기존 노드를 발견한 경우
 			{
-				if (prevtemp == NULL) // h->first->rlink가 NULL, 즉 기존 노드가 1개 있는 경우
+				if (prevtemp == NULL) // prevtemp == NULL, 즉 첫 번째 노드가 되는 경우
 				{
-					h->first = node; // 새로 추가하는 node를 기존 노드보다 앞선 위치에 추가해야 하므로
+					h->rlink = node; // 새로 추가하는 node를 기존 노드보다 앞선 위치에 추가해야 하므로
 					node->rlink = temp; // 헤드 포인터가 node를 가리키게 하고 node->rlink가 기존 노드를 가리키게 함
 					node->llink = h; // 새로 추가한 노드의 llink가 헤드 포인터를 가리키게 함
 					temp->llink = node; // 기존 노드의 llink가 새로 추가된 노드 가리키게 함
 					return 0;
 				}
 				else
-				{ // 기존 노드가 2개 이상 있는 경우
+				{ // 기존 노드가 2개 이상 있는 경우 (두 번째 이후의 노드가 되는 경우)
 
 					node->rlink = temp;  // 새로 추가하는 node->rlink를 값이 큰 뒤쪽 노드를 가리키게 하고
 					node->llink = temp->llink; // 새로 추가하는 node의 llink가 좌측 노드를 가리키게 하고
@@ -370,9 +370,9 @@ int insertNode(listNode* h, int key) {
 				}
 			}
 
-			if ((temp->rlink) == NULL)
+			if ((temp->rlink) == h)
 			{
-				break; // temp->rlink가 NULL일 때, 즉 모든 노드에 대한 값 탐색을 완료한 경우 for문 탈출
+				break; // temp->rlink가 hL일 때, 즉 모든 노드에 대한 값 탐색을 완료한 경우 for문 탈출
 			}
 
 			prevtemp = temp; // 하나의 노드에 대한 탐색을 완료한 경우
@@ -381,12 +381,13 @@ int insertNode(listNode* h, int key) {
 		}
 
 
-		if ((temp->rlink) == NULL) // 모든 노드에 대한 탐색을 마쳤을 때 입력한 key보다 큰값 가지는 node 없는 경우
+		if ((temp->rlink) == h) // 모든 노드에 대한 탐색을 마쳤을 때 입력한 key보다 큰값 가지는 node 없는 경우
 		{
 			//			printf("입력한 key보다 큰값을 가지는 노드가 없어 마지막 노드로 추가합니다.\n");
 			temp->rlink = node; // temp가 가리키는 리스트의 마지막 노드의 rlink를 새로 추가하는 node로 설정
 			node->llink = temp; // 새로 추가하는 마지막 node의 llink를 좌측 노드인 temp로 설정
-			node->rlink = NULL; // node가 리스트의 새로운 마지막 노드이므로 node->rlink를 NULL로 설정
+			node->rlink = h; // node가 리스트의 새로운 마지막 노드이므로 node->rlink를 h로 설정
+			h->llink = node; // node가 리스트의 새로운 마지막 노드이므로 h->llink를 node로 설정
 		}
 		return 0;
 	}
@@ -400,6 +401,40 @@ int insertNode(listNode* h, int key) {
  * list에서 key에 대한 노드 삭제
  */
 int deleteNode(listNode* h, int key) {
+
+	if (h->rlink == h && h->llink == h) // h->first = NULL인 경우, 즉 리스트에 노드가 존재하지 않을 경우
+	{
+		printf("입력된 노드가 없습니다.\n"); // 메시지 출력 및 복귀
+		return 0;
+	}
+
+	listNode* temp = h->rlink; // 값을 비교하기 위한 노드 포인터 temp 선언
+
+	for (temp = h->rlink; ; temp = temp->rlink) // for문을 통해 리스트의 모든 노드를 탐색하여
+	{
+		if (h->rlink != h && temp->rlink == h) // 탐색 완료 후에도 값이 일치하는 노드가 없을 경우
+		{
+			printf("입력한 key와 같은 값을 가지는 노드가 없어 삭제하지 않습니다.\n"); // 메시지 출력 및 복귀
+			break;
+		}
+
+		if (key == (temp->key)) // 입력한 key와 같은 값을 가지는 노드를 찾은 경우
+		{
+			if (h->rlink->rlink == h) // 리스트의 노드가 1개인 경우
+			{
+				h->rlink = h; // 리스트의 노드를 모두 없애므로 h->rlink, h->llink = NULL
+				h->llink = h;
+				free(temp); // 값이 같은 리스트의 노드에 대한 공간 할당 해제
+				return 0;
+			}
+			// 리스트의 노드가 2개 이상일 경우
+			temp->llink->rlink = temp->rlink; // temp 노드 좌측 노드의 rlink를 temp 노드 우측 노드를 가리키게 함
+			temp->rlink->llink = temp->llink; // temp 노드 우측 노드의 llink를 temp 노드 좌측 노드를 가리키게 함
+			free(temp); // 지울 노드(temp)에 대한 공간 할당 해제
+			break; // for문 빠져나옴
+		}
+	}
+
 
 	return 0;
 }
