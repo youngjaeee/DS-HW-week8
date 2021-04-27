@@ -123,9 +123,11 @@ int initialize(listNode** h) {
 /* 메모리 해제 */
 int freeList(listNode* h){
 
-	listNode* p = h; // 노드 포인터 p를 선언해 h->first 대입
+	listNode* p = h->rlink; // 노드 포인터 p를 선언해 h->rlink 대입
 	listNode* temp; // free()함수를 실행하기 위한 임시 포인터 선언
-	while (p != NULL) { // 모든 노드에 대한 공간 할당 해제를 완료할 때까지
+	while (1) { // 모든 노드에 대한 공간 할당 해제를 완료할 때까지
+		if(p == h)
+			break;
 		temp = p; // temp를 p로 설정
 		p = p->rlink; // p를 p->rlink로 설정
 		free(temp); // prev가 가리키는 노드 공간에 대한 할당 해제
@@ -301,6 +303,7 @@ int invertList(listNode* h) {
 	listNode* lead = h->rlink;  // 역순 재배치를 위한 노드 포인터 lead 선언, 첫 번째 노드 가리키게 함
 	listNode* temp = NULL; // lead의 우측 노드를 가리키는 포인터 temp 선언
 	lead->llink = h;
+	h->llink = h->rlink; // invert 실행 시 기존 첫 번째 노드가 마지막이 되므로 h->llink = h->rrlink
 
 	while (lead != h) // lead가 모든 노드에 대해 한 번씩 탐색을 완료할 때까지
 	{
