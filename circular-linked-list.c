@@ -274,6 +274,19 @@ int insertFirst(listNode* h, int key) {
  */
 int deleteFirst(listNode* h) {
 
+	if (h->rlink == h && h->llink == h) // h->first = NULL인 경우, 즉 리스트에 노드가 존재하지 않을 경우
+	{
+		printf("입력된 node가 없습니다.\n"); // 메시지 출력 및 복귀
+		return 0;
+	}
+
+	listNode* temp = h->rlink; // 노드 포인터 temp를 선언후 헤더 노드가 가리키는 첫 번째 노드 주소 대입
+	h->rlink = h->rlink->rlink; // 헤더 노드가 두 번째 노드(첫 번째 노드의 rlink를 통해)를 가리키게 하여 첫 번째 노드의 연결고리 끊음
+	h->rlink->llink = h; // 새롭게 첫 번째로 된 노드의 llink를 헤드 포인터를 가리키게 함
+	free(temp); // 기존 첫 번째 노드의 주소를 가지고 있는 temp에 대한 할당을 해제하여 첫 번째 노드를 삭제
+
+
+	return 0;
 
 	return 1;
 
@@ -285,6 +298,24 @@ int deleteFirst(listNode* h) {
  */
 int invertList(listNode* h) {
 
+	listNode* lead = h->rlink;  // 역순 재배치를 위한 노드 포인터 lead 선언, 첫 번째 노드 가리키게 함
+	listNode* temp = NULL; // lead의 우측 노드를 가리키는 포인터 temp 선언
+	lead->llink = h;
+
+	while (lead != h) // lead가 모든 노드에 대해 한 번씩 탐색을 완료할 때까지
+	{
+		temp = lead->rlink; // temp가 기존 lead 노드의 우측 노드를 가리키게 함
+		lead->rlink = lead->llink; // lead의 rlink를 lead의 llink로 대입하여 순서 바꿈
+		lead->llink = temp; // lead의 llink를 기존 우측 노드인 temp를 가리키게 하여 순서 바꿈
+		if (temp == h) // 마지막 노드까지 탐색을 완료하였을 때
+		{
+			h->rlink = lead; // 순서를 모두 바꾼 후 h->rlink가 lead를 가리키게 하여 첫 번째 노드로 함
+			lead -> llink = h; // lead 노드(순서 변경 후의 첫번째 노드)의 llink가 h를 가리키게 함
+		}
+		lead = temp; // lead에 기존 우측 노드 포인터인 temp 대입하여 다음 노드 탐색 실행
+
+	}
+	return 0;
 
 	return 0;
 }
@@ -295,6 +326,71 @@ int invertList(listNode* h) {
  *  리스트를 검색하여, 입력받은 key보다 큰값이 나오는 노드 바로 앞에 삽입 
  **/
 int insertNode(listNode* h, int key) {
+
+	listNode* node = (listNode*)malloc(sizeof(listNode)); // 추가할 노드에 대한 공간을 할당에 node에 저장
+	node->key = key; // node의 key를 사용자가 입력한 값으로 설정
+
+
+	listNode* temp = h->rlink; // 값을 비교하기 위한 노드 포인터 temp, prevtemp 선언
+	listNode* prevtemp = NULL; // 각각 h->rlink, NULL로 초기화
+
+	if (temp == h) // temp가 h일때, 즉 리스트에 노드가 존재하지 않는 경우
+	{
+		printf("연결리스트 상 첫 번째로 입력하는 key로 비교대상 node가 없습니다.\n");
+		node->rlink = h; // 첫 번째이자 유일한 노드로 추가하므로 node->rlink를 h로 설정
+		h->rlink = node; // h->rlink가 새로 추가한 node를 가리키게 함
+		h->llink = node; // h->llink가 새로 추가한 node를 가리키게 함
+		node->llink = h; // 새롭게 첫 번째로 된 노드의 llink를 h를 가리키게 함
+
+		return 0;
+	}
+	else if (temp != NULL) // temp가 NULL이 아닐 때, 즉 노드가 1개 이상 존재하는 경우
+	{
+		for (temp = h->rlink; ; ) // temp가 리스트의 모든 노드를 한 번씩 가리킬 때까지 반복
+		{
+			if (key < (temp->key)) // 사용자가 추가하고자 하는 노드 key값 보다 큰 key를 가진 기존 노드를 발견한 경우
+			{
+				if (prevtemp == NULL) // h->first->rlink가 NULL, 즉 기존 노드가 1개 있는 경우
+				{
+					h->first = node; // 새로 추가하는 node를 기존 노드보다 앞선 위치에 추가해야 하므로
+					node->rlink = temp; // 헤드 포인터가 node를 가리키게 하고 node->rlink가 기존 노드를 가리키게 함
+					node->llink = h; // 새로 추가한 노드의 llink가 헤드 포인터를 가리키게 함
+					temp->llink = node; // 기존 노드의 llink가 새로 추가된 노드 가리키게 함
+					return 0;
+				}
+				else
+				{ // 기존 노드가 2개 이상 있는 경우
+
+					node->rlink = temp;  // 새로 추가하는 node->rlink를 값이 큰 뒤쪽 노드를 가리키게 하고
+					node->llink = temp->llink; // 새로 추가하는 node의 llink가 좌측 노드를 가리키게 하고
+					temp->llink->rlink = node; // 새로 추가하는 node의 좌측 노드의 rlink가 node를 가리키게 하며
+					temp->llink = node; // 새로 추가하는 node보다 값이 큰 우측 노드의 llink가 node를 가리키게 한다.
+
+					return 0;
+				}
+			}
+
+			if ((temp->rlink) == NULL)
+			{
+				break; // temp->rlink가 NULL일 때, 즉 모든 노드에 대한 값 탐색을 완료한 경우 for문 탈출
+			}
+
+			prevtemp = temp; // 하나의 노드에 대한 탐색을 완료한 경우
+			temp = temp->rlink; // prevtemp, temp가 가리키는 노드 + 1
+
+		}
+
+
+		if ((temp->rlink) == NULL) // 모든 노드에 대한 탐색을 마쳤을 때 입력한 key보다 큰값 가지는 node 없는 경우
+		{
+			//			printf("입력한 key보다 큰값을 가지는 노드가 없어 마지막 노드로 추가합니다.\n");
+			temp->rlink = node; // temp가 가리키는 리스트의 마지막 노드의 rlink를 새로 추가하는 node로 설정
+			node->llink = temp; // 새로 추가하는 마지막 node의 llink를 좌측 노드인 temp로 설정
+			node->rlink = NULL; // node가 리스트의 새로운 마지막 노드이므로 node->rlink를 NULL로 설정
+		}
+		return 0;
+	}
+
 
 	return 0;
 }
